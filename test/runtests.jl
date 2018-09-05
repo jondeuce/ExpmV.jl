@@ -4,6 +4,18 @@ using LinearAlgebra
 using SparseArrays
 using LinearMaps
 
+@testset "Internal functions" begin
+    d = 100
+    A = sprandn(d, d, .1) + 1im*sprandn(d, d, .1)
+    b = randn(ComplexF64,d)
+    res = similar(b)
+    for n = 1:4
+        ExpmV.A_pow_n_B!(res, A, n, b)
+        @test res ≈ A^n * b
+        ExpmV.At_pow_n_B!(res, A, n, b)
+        @test res ≈ adjoint(A)^n * b
+    end
+end
 
 @testset "Real matrices" begin
     @testset "Positive: $positive"  for positive in [true, false]
