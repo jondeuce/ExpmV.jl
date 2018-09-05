@@ -32,8 +32,14 @@ end
 
                 rt = randn()
 
-                @testset "Against expm" begin
-                    @test expmv(rt,r,rv) ≈ exp(Matrix(rt*r))*rv
+                exact = exp(Matrix(rt*r))*rv
+                @testset "Against exp" begin
+                    @test expmv(rt,r,rv) ≈ exact
+
+                end
+
+                @testset "Shifting" begin
+                    @test expmv(rt,r,rv, shift=true) ≈ exact
                 end
 
                 # Test the StepRangeLen version against the normal version
