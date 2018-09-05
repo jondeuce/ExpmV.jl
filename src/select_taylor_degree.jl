@@ -76,7 +76,7 @@ function select_taylor_degree(A,
           theta_half
       end
 
-    if shift && hasmethod(tr, typeof(A))
+    if shift && hasmethod(tr, Tuple{typeof(A)})
         mu = tr(A)/n
         A -= mu * I
     end
