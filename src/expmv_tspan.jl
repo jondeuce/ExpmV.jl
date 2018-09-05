@@ -9,7 +9,7 @@ function expmv(t::StepRangeLen, A, b::Vector;
     q = t.len - 1
     n = size(A, 1)
 
-    if shift == true && !hasmethod(tr, typeof(A))
+    if shift == true && !hasmethod(tr, Tuple{typeof(A)})
         shift = false
         @warn "Shift set to false as $(typeof(A)) doesn't support tr"
     end
