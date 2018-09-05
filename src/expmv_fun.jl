@@ -24,8 +24,7 @@ a parameter (or a `StepRangeLen` object representing a range of values).
 function expmv(t::Number, A, b::VecOrMat; M = nothing,
                 precision = "double", shift = false, full_term = false)
     n = size(A, 1)
-
-    if shift == true && !hasmethod(tr, typeof(A))
+    if shift == true && !hasmethod(tr, Tuple{typeof(A)})
         shift = false
         @warn "Shift set to false as $(typeof(A)) doesn't support tr"
     end
@@ -38,7 +37,9 @@ function expmv(t::Number, A, b::VecOrMat; M = nothing,
 
     if M == nothing
         tt = 1
-        (M,alpha,unA) = select_taylor_degree(t*A,b)
+        (M,alpha,unA) = select_taylor_degree(t*A, b,
+                                       precision = precision,
+                                      shift = shift)
     else
         tt = t
     end
