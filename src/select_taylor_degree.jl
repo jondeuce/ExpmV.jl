@@ -40,7 +40,7 @@ const theta_half = [0.00195058, 0.0744366, 0.266455, 0.524205, 0.810269, 1.10823
 26.6887, 26.9706, 27.2524, 27.5342, 27.816, 28.0978]
 
 function select_taylor_degree(A,
-                              b,
+                              b_columns,
                               opnorm = LinearAlgebra.opnorm;
                               m_max = 55,
                               p_max = 8,
@@ -88,7 +88,7 @@ function select_taylor_degree(A,
         normA = opnorm(A,1)
     end
 
-    if !force_estm && normA <= 4*theta[m_max]*p_max*(p_max + 3)/(m_max*size(b,2))
+    if !force_estm && normA <= 4*theta[m_max]*p_max*(p_max + 3)/(m_max*b_columns)
         unA = 1
         c = normA
         alpha = c*ones(p_max-1,1)

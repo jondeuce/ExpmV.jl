@@ -25,7 +25,8 @@ function expmv!(
         f::AbstractVecOrMat, t::Number, A, b::AbstractVecOrMat,
         M = nothing, norm = LinearAlgebra.norm, opnorm = LinearAlgebra.opnorm,
         b1 = similar(b), b2 = similar(b);
-        precision = :double, shift = false, full_term = false, check_positive = false)
+        precision = :double, shift = false, full_term = false, check_positive = false
+    )
         
     if shift == true && !hasmethod(tr, typeof(A))
         shift = false
@@ -33,9 +34,9 @@ function expmv!(
     end
     
     n = size(A, 2)
-    T = real(eltype(b))
+    Tr = real(eltype(b))
 
-    mu = zero(T)
+    mu = zero(Tr)
     if shift
         mu = tr(A)/n
         A = A - mu*I
@@ -43,18 +44,18 @@ function expmv!(
 
     if M == nothing
         tt = 1
-        (M,alpha,unA) = select_taylor_degree(t*A, b; precision=precision, shift=shift, check_positive=check_positive)
+        (M,alpha,unA) = select_taylor_degree(t*A, size(b,2); precision=precision, shift=shift, check_positive=check_positive)
     else
         tt = t
     end
 
     tol =
       if precision == :double
-          T(2.0^(-53))
+          Tr(2.0^(-53))
       elseif precision == :single
-          T(2.0^(-24))
+          Tr(2.0^(-24))
       elseif precision == :half
-          T(2.0^(-10))
+          Tr(2.0^(-10))
       end
 
     s = 1
@@ -89,7 +90,7 @@ function expmv!(
     f = copyto!(f, b)
     b1 = copyto!(b1, b)
     b2 = copyto!(b2, b)
-    c1 = c2 = T(Inf)
+    c1 = c2 = Tr(Inf)
 
     @inbounds for i = 1:s
         if !full_term
@@ -126,8 +127,11 @@ function expmv(
         t::Number, A, b::AbstractVecOrMat,
         M = nothing, norm = LinearAlgebra.norm, opnorm = LinearAlgebra.opnorm,
         b1 = copy(b), b2 = similar(b);
-        precision = :double, shift = false, full_term = false, check_positive = false)
-    
-    return expmv!(similar(b), t, A, b, M, norm, opnorm, b1, b2;
-        precision = precision, shift = shift, full_term = full_term, check_positive = check_positive)
+        precision = :double, shift = false, full_term = false, check_positive = false
+    )
+
+    return expmv!(
+        similar(b), t, A, b, M, norm, opnorm, b1, b2;
+        precision = precision, shift = shift, full_term = full_term, check_positive = check_positive
+    )
 end

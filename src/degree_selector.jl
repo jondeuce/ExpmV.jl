@@ -14,7 +14,7 @@ function degree_selector(t, M, U, p)
         cost = 0
     end
     s = max(cost/m,1);
-    return (m, s)
+    return m, s
 end
 
 function zero_to_inf(x::Number)
