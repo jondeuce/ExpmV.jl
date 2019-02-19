@@ -7,5 +7,6 @@ module ExpmV
   include("expmv_tspan.jl")
   include("select_taylor_degree.jl")
   include("norm1est.jl")
+  include("normest1.jl")
 
 end # module
