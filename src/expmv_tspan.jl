@@ -1,8 +1,10 @@
 using LinearAlgebra
 using SparseArrays
 
-function expmv(t::StepRangeLen, A, b::AbstractVecOrMat;
-                M = nothing, precision = "double", shift = false)
+function expmv(
+        t::StepRangeLen, A, b::AbstractVecOrMat,
+        M = nothing, norm = LinearAlgebra.norm, opnorm = LinearAlgebra.opnorm;
+        precision = :double, shift = false, check_positive = false)
 
     t0 = Float64(t.ref)
     tmax = Float64(t.ref + (t.len - 1.) * t.step)
@@ -15,22 +17,22 @@ function expmv(t::StepRangeLen, A, b::AbstractVecOrMat;
     end
 
     force_estm = !hasmethod(opnorm, Tuple{typeof(A), typeof(1)})
-    temp = (tmax - t0) * normAm(A, 1);
+    temp = (tmax - t0) * normAm(A, 1; check_positive = check_positive);
 
-    if (precision == "single" || precision == "half" && temp > 85.496) || ( precision == "double" && temp > 63.152)
+    if (precision == :single || precision == :half && temp > 85.496) || ( precision == :double && temp > 63.152)
        force_estm = true;
     end
 
     if M == nothing
-        (M, alpha, unA) = select_taylor_degree(A, b, precision=precision, shift=shift, force_estm=force_estm)
+        (M, alpha, unA) = select_taylor_degree(A, b; precision=precision, shift=shift, force_estm=force_estm, check_positive=check_positive)
     end
 
     tol =
-      if precision == "double"
+      if precision == :double
           2.0^(-53)
-      elseif precision == "single"
+      elseif precision == :single
           2.0^(-24)
-      elseif precision == "half"
+      elseif precision == :half
           2.0^(-10)
       end
 
@@ -41,7 +43,7 @@ function expmv(t::StepRangeLen, A, b::AbstractVecOrMat;
     temp, s = degree_selector(tmax - t0, M, U, p)
     h = (tmax - t0)/q;
 
-    X[:,1] = expmv(t0,A,b,M=M,precision=precision,shift=shift);
+    X[:,1] = expmv(t0,A,b,M,norm,opnorm;precision=precision,shift=shift,check_positive=check_positive);
 
     mu = 0.
     if shift

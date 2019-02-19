@@ -40,13 +40,15 @@ const theta_half = [0.00195058, 0.0744366, 0.266455, 0.524205, 0.810269, 1.10823
 26.6887, 26.9706, 27.2524, 27.5342, 27.816, 28.0978]
 
 function select_taylor_degree(A,
-                              b;
+                              b,
+                              opnorm = LinearAlgebra.opnorm;
                               m_max = 55,
                               p_max = 8,
-                              precision = "double",
+                              precision = :double,
                               shift = false,
                               # bal,
-                              force_estm = true)
+                              force_estm = true,
+                              check_positive = false)
 
     #SELECT_TAYLOR_DEGREE   Select degree of Taylor approximation.
     #   [M,MV,alpha,unA] = SELECT_TAYLOR_DEGREE(A,m_max,p_max) forms a matrix M
@@ -68,11 +70,11 @@ function select_taylor_degree(A,
 
 
     theta =
-      if precision == "double"
+      if precision == :double
           theta_double
-      elseif precision == "single"
+      elseif precision == :single
           theta_single #load theta_taylor_single
-      elseif precision == "half"
+      elseif precision == :half
           theta_half
       end
 
@@ -95,7 +97,7 @@ function select_taylor_degree(A,
         eta = zeros(p_max, 1)
         alpha = zeros(p_max-1, 1)
         for p = 1:p_max
-            c = normAm(A, p + 1)
+            c = normAm(A, p + 1; check_positive = check_positive)
             c = c^(1 / (p + 1))
             eta[p] = c
         end

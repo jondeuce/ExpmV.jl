@@ -1,4 +1,8 @@
-function normAm(A,m)::Real
+function normAm(A,
+                m,
+                norm = LinearAlgebra.norm,
+                opnorm = LinearAlgebra.opnorm;
+                check_positive = false)::Real
     #NORMAM   Estimate of 1-norm of power of matrix.
     #   NORMAM(A,m) estimates norm(A^m,1).
     #   If A has nonnegative elements the estimate is exact.
@@ -13,10 +17,10 @@ function normAm(A,m)::Real
 
     t = 2; # Number of columns used by NORMEST1.
 
-    n = size(A, 1);
-    if hasmethod(opnorm, Tuple{typeof(A), typeof(1)})
-        if eltype(A) <: Real
+    if check_positive # expensive check; forces matrix materialization
+        if eltype(A) <: Real && hasmethod(opnorm, Tuple{typeof(A), typeof(1)})
             if sum(A .< 0) == 0 # for positive matrices only
+                n = size(A,1);
                 e = ones(n,1)
                 f = similar(e)
                 for j=1:m

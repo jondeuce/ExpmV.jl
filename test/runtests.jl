@@ -6,7 +6,7 @@ using LinearMaps
 
 
 @testset "Real matrices" begin
-    @testset "Positive: $positive"  for positive in [true, false]
+    @testset "Positive: $positive" for positive in [true, false]
         @testset "Size: $d" for d in [10, 100]
             for i = 1:10 # Just repeat it a few times
                 r = sprandn(d, d, .1)
@@ -21,14 +21,14 @@ using LinearMaps
                 rt = randn()
 
                 @testset "Against expm" begin
-                    @test expmv(rt,r,rv) ≈ exp(Matrix(rt*r))*rv
+                    @test expmv(rt,r,rv;check_positive=positive) ≈ exp(Matrix(rt*r))*rv
                 end
 
                 # Test the StepRangeLen version against the normal version
                 @testset "Timespan $nt timesteps" for nt in [5 11 51]
                     t = range(0, stop=rt, length=nt)
-                    x = expmv(t,r,rv)
-                    y = hcat([expmv(ti,r,rv) for ti in t]...)
+                    x = expmv(t,r,rv;check_positive=positive)
+                    y = hcat([expmv(ti,r,rv;check_positive=positive) for ti in t]...)
                     @test x ≈ y
                 end
 
@@ -37,7 +37,7 @@ using LinearMaps
                     rv = randn(d, d2)
                     rv = rv * diagm(0 => [1.0/norm(rv[:,j],2) for j in 1:d2])
 
-                    x = expmv(rt,r,rv)
+                    x = expmv(rt,r,rv;check_positive=positive)
                     @test x ≈ exp(Matrix(rt*r))*rv
                 end
             end
@@ -97,5 +97,5 @@ end
     @test expmv(rt, L, rv) ≈ expmv(rt, A, rv)
 
     t = range(0, stop=rt, length=20)
-    @test expmv(t,L,rv) ≈ expmv(t, A, rv)
+    @test expmv(t, L, rv) ≈ expmv(t, A, rv)
 end

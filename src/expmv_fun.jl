@@ -15,22 +15,27 @@ a parameter (or a `StepRangeLen` object representing a range of values).
 * `A`: a `n × n` real or complex sparse matrix
 * `b`: an `n`-vector
 * `M = []`: manually set the degree of the Taylor expansion
-* `precision = "double"`: can be `"double"`, `"single"` or `"half"`.
+* `precision = :double`: can be `:double`, `:single` or `:half`.
 * `shift = false`: set to `true` to apply a shift in order to reduce the norm of A
         (see Sec. 3.1 of the paper)
 * `full_term = false`: set to `true` to evaluate the full Taylor expansion instead
         of truncating when reaching the required precision
 """
-function expmv(t::Number, A, b::AbstractVecOrMat; M = nothing,
-                precision = "double", shift = false, full_term = false)
-    n = size(A, 1)
-
+function expmv!(
+        f::AbstractVecOrMat, t::Number, A, b::AbstractVecOrMat,
+        M = nothing, norm = LinearAlgebra.norm, opnorm = LinearAlgebra.opnorm,
+        b1 = copy(b), b2 = similar(b);
+        precision = :double, shift = false, full_term = false, check_positive = false)
+        
     if shift == true && !hasmethod(tr, typeof(A))
         shift = false
         @warn "Shift set to false as $(typeof(A)) doesn't support tr"
     end
+    
+    n = size(A, 1)
+    T = eltype(b)
 
-    mu = 0.
+    mu = zero(T)
     if shift
         mu = tr(A)/n
         A = A - mu*I
@@ -38,17 +43,17 @@ function expmv(t::Number, A, b::AbstractVecOrMat; M = nothing,
 
     if M == nothing
         tt = 1
-        (M,alpha,unA) = select_taylor_degree(t*A,b)
+        (M,alpha,unA) = select_taylor_degree(t*A, b; precision=precision, shift=shift, check_positive=check_positive)
     else
         tt = t
     end
 
     tol =
-      if precision == "double"
+      if precision == :double
           2.0^(-53)
-      elseif precision == "single"
+      elseif precision == :single
           2.0^(-24)
-      elseif precision == "half"
+      elseif precision == :half
           2.0^(-10)
       end
 
@@ -82,14 +87,15 @@ function expmv(t::Number, A, b::AbstractVecOrMat; M = nothing,
     end
 
     f = b
+    c1 = c2 = T(Inf)
 
     for i = 1:s
-        c1 = norm(b,Inf)
+        !full_term && (c1 = norm(b,Inf)) # only need to update if !full_term
         for k = 1:m
             b = (t/(s*k))*(A*b)
             f += b
-            c2 = norm(b,Inf)
             if !full_term
+                c2 = norm(b,Inf) # only need to update if !full_term
                 if c1 + c2 <= tol*norm(f,Inf)
                     break
                 end
@@ -97,9 +103,19 @@ function expmv(t::Number, A, b::AbstractVecOrMat; M = nothing,
             end
 
         end
-        f .*= eta
+        shift && (f .*= eta)
         copyto!(b, f)
     end
 
     return f
+end
+
+function expmv(
+        t::Number, A, b::AbstractVecOrMat,
+        M = nothing, norm = LinearAlgebra.norm, opnorm = LinearAlgebra.opnorm,
+        b1 = copy(b), b2 = similar(b);
+        precision = :double, shift = false, full_term = false, check_positive = false)
+    
+    return expmv!(similar(b), t, A, b, M, norm, opnorm, b1, b2;
+        precision = precision, shift = shift, full_term = full_term, check_positive = check_positive)
 end
