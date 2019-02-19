@@ -24,7 +24,7 @@ a parameter (or a `StepRangeLen` object representing a range of values).
 function expmv!(
         f::AbstractVecOrMat, t::Number, A, b::AbstractVecOrMat,
         M = nothing, norm = LinearAlgebra.norm, opnorm = LinearAlgebra.opnorm,
-        b1 = copy(b), b2 = similar(b);
+        b1 = similar(b), b2 = similar(b);
         precision = :double, shift = false, full_term = false, check_positive = false)
         
     if shift == true && !hasmethod(tr, typeof(A))
@@ -32,8 +32,8 @@ function expmv!(
         @warn "Shift set to false as $(typeof(A)) doesn't support tr"
     end
     
-    n = size(A, 1)
-    T = eltype(b)
+    n = size(A, 2)
+    T = real(eltype(b))
 
     mu = zero(T)
     if shift
@@ -50,11 +50,11 @@ function expmv!(
 
     tol =
       if precision == :double
-          2.0^(-53)
+          T(2.0^(-53))
       elseif precision == :single
-          2.0^(-24)
+          T(2.0^(-24))
       elseif precision == :half
-          2.0^(-10)
+          T(2.0^(-10))
       end
 
     s = 1
@@ -86,25 +86,37 @@ function expmv!(
         eta = exp(t*mu/s)
     end
 
-    f = b
+    f = copyto!(f, b)
+    b1 = copyto!(b1, b)
+    b2 = copyto!(b2, b)
     c1 = c2 = T(Inf)
 
-    for i = 1:s
-        !full_term && (c1 = norm(b,Inf)) # only need to update if !full_term
+    @inbounds for i = 1:s
+        if !full_term
+            c1 = norm(b1, Inf) # only need to update if !full_term
+        end
+
         for k = 1:m
-            b = (t/(s*k))*(A*b)
-            f += b
+            b2 = mul!(b2, A, b1)
+            b2 .*= (t / (s * k)) # b = (t/(s*k))*(A*b)
+            b1, b2 = b2, b1
+            f .+= b1 # f = axpy!(1, b1, f)
+
             if !full_term
-                c2 = norm(b,Inf) # only need to update if !full_term
-                if c1 + c2 <= tol*norm(f,Inf)
+                c2 = norm(b1, Inf) # only need to update if !full_term
+                if c1 + c2 <= tol * norm(f, Inf)
                     break
                 end
                 c1 = c2
             end
 
         end
-        shift && (f .*= eta)
-        copyto!(b, f)
+
+        if shift
+            f .*= eta
+        end
+
+        b1 = copyto!(b1, f)
     end
 
     return f

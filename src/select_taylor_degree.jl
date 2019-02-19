@@ -62,7 +62,7 @@ function select_taylor_degree(A,
 
     #   Awad H. Al-Mohy and Nicholas J. Higham, October 26, 2010.
 
-    n = size(A, 1)
+    n = size(A, 2)
 
     if p_max < 2 || m_max > 60 || m_max + 1 < p_max*(p_max - 1)
         error("Invalid p_max or m_max.")

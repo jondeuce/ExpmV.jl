@@ -52,9 +52,9 @@ function norm1est(A, m::Integer, t::Integer = min(2,maximum(size(A))))::Real
 
     maxiter = 5
     # Check the input
-    @assert size(A,1) == size(A,2) "Matrix exponential only defined for square matrices"
+    @assert size(A, 1) == size(A, 2) "Matrix exponential only defined for square matrices"
 
-    n = size(A,1)
+    n = size(A, 2)
 
     if t <= 0
         throw(ArgumentError("number of blocks must be a positive integer"))

@@ -9,7 +9,7 @@ function expmv(
     t0 = Float64(t.ref)
     tmax = Float64(t.ref + (t.len - 1.) * t.step)
     q = t.len - 1
-    n = size(A, 1)
+    n = size(A, 2)
 
     if shift == true && !hasmethod(tr, typeof(A))
         shift = false

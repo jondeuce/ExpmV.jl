@@ -20,8 +20,8 @@ function normAm(A,
     if check_positive # expensive check; forces matrix materialization
         if eltype(A) <: Real && hasmethod(opnorm, Tuple{typeof(A), typeof(1)})
             if sum(A .< 0) == 0 # for positive matrices only
-                n = size(A,1);
-                e = ones(n,1)
+                n = size(A, 2);
+                e = ones(n, 1)
                 f = similar(e)
                 for j=1:m
                     mul!(f, A, e)
