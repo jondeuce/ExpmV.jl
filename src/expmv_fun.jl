@@ -4,31 +4,35 @@ using SparseArrays
 export expmv
 
 """
-    expmv(t, A, b; <keyword arguments>)
+    expmv!(f, t, A, b; <keyword arguments>)
 
 Returns the matrix-vector product ``exp(t A) b`` where `A` is a ``n × n`` sparse
-real or complex matrix, `b` is a vector of ``n`` real or complex elements and `t` is
-a parameter (or a `StepRangeLen` object representing a range of values).
+real or complex matrix or matrix-free object, `b` is a vector of ``n`` real or
+complex elements, and `t` is a time step parameter (or a `StepRangeLen` object
+representing a range of values).
 
 # Arguments
+* `f`: an `n`-vector for preallocating the output 
 * `t`: `Number` or `StepRangeLen` object
 * `A`: a `n × n` real or complex sparse matrix
 * `b`: an `n`-vector
 * `M = []`: manually set the degree of the Taylor expansion
 * `precision = :double`: can be `:double`, `:single` or `:half`.
-* `shift = false`: set to `true` to apply a shift in order to reduce the norm of A
+* `shift = $DEFAULT_SHIFT`: set to `true` to apply a shift in order to reduce the norm of A
         (see Sec. 3.1 of the paper)
 * `full_term = false`: set to `true` to evaluate the full Taylor expansion instead
         of truncating when reaching the required precision
+* `check_positive = false`: set to `true` to check if `A` has strictly positive entries
+        for a faster evaluation of the 1-norm
 """
 function expmv!(
         f::AbstractVecOrMat, t::Number, A, b::AbstractVecOrMat,
         M = nothing, norm = LinearAlgebra.norm, opnorm = LinearAlgebra.opnorm,
         b1 = similar(b), b2 = similar(b);
-        precision = :double, shift = false, full_term = false, check_positive = false
+        precision = :double, shift = DEFAULT_SHIFT, full_term = false, check_positive = false
     )
         
-    if shift == true && !hasmethod(tr, typeof(A))
+    if shift == true && !hasmethod(tr, Tuple{typeof(A)})
         shift = false
         @warn "Shift set to false as $(typeof(A)) doesn't support tr"
     end
@@ -39,7 +43,7 @@ function expmv!(
     mu = zero(Tr)
     if shift
         mu = tr(A)/n
-        A = A - mu*I
+        A = diagshift!(A, mu) #A = A - mu * I
     end
 
     if M == nothing
@@ -127,7 +131,7 @@ function expmv(
         t::Number, A, b::AbstractVecOrMat,
         M = nothing, norm = LinearAlgebra.norm, opnorm = LinearAlgebra.opnorm,
         b1 = copy(b), b2 = similar(b);
-        precision = :double, shift = false, full_term = false, check_positive = false
+        precision = :double, shift = DEFAULT_SHIFT, full_term = false, check_positive = false
     )
 
     return expmv!(

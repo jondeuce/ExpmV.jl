@@ -45,7 +45,7 @@ function select_taylor_degree(A,
                               m_max = 55,
                               p_max = 8,
                               precision = :double,
-                              shift = false,
+                              shift = DEFAULT_SHIFT,
                               # bal,
                               force_estm = true,
                               check_positive = false)
@@ -78,9 +78,9 @@ function select_taylor_degree(A,
           theta_half
       end
 
-    if shift && hasmethod(tr, typeof(A))
+    if shift && hasmethod(tr, Tuple{typeof(A)})
         mu = tr(A)/n
-        A -= mu * I
+        A = diagshift!(A, mu) #A -= mu * I
     end
 
     if !force_estm

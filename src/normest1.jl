@@ -203,23 +203,6 @@ function randomize_parallel!(S,So)
     end
 end
 
-# extension of Base.sign where x==0 
-zerosign(x) = x == zero(x) ? one(x) : Base.sign(x)
-
-function lazyfindmax(f,x)
-    idx = 1 # default
-    maxval = f(first(x)) # default
-    for (i,xi) in enumerate(x)
-        (i == 1) && continue
-        fval = f(xi)
-        if fval > maxval
-            idx, maxval = i, fval
-        end
-    end
-    return maxval, idx
-end
-lazyfindmax(x) = lazyfindmax(identity,x)
-
 # using BenchmarkTools
 # using LinearMaps
 # 

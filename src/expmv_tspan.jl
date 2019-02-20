@@ -4,7 +4,7 @@ using SparseArrays
 function expmv!(
         f::AbstractVecOrMat, t::StepRangeLen, A, b::AbstractVecOrMat,
         M = nothing, norm = LinearAlgebra.norm, opnorm = LinearAlgebra.opnorm;
-        precision = :double, shift = false, check_positive = false
+        precision = :double, shift = DEFAULT_SHIFT, check_positive = false
     )
 
     n = size(A, 2)
@@ -15,7 +15,7 @@ function expmv!(
     t0 = Tr(t.ref)
     tmax = Tr(t.ref + (t.len - 1.) * t.step)
     
-    if shift == true && !hasmethod(tr, typeof(A))
+    if shift == true && !hasmethod(tr, Tuple{typeof(A)})
         shift = false
         @warn "Shift set to false as $(typeof(A)) doesn't support tr"
     end
@@ -53,7 +53,7 @@ function expmv!(
     mu = zero(Tr)
     if shift
         mu = tr(A)/n
-        A = A - mu * I
+        A = diagshift!(A, mu) #A = A - mu * I
     end
 
     d = max(1, Integer(floor(q/s)))
@@ -93,7 +93,11 @@ function expmv!(
             end
 
             m = max(m,p)
-            @views X[:, k + (i-1)*d + 1] .= exp(k*h*mu) .* f
+            if shift
+                @views X[:, k + (i-1)*d + 1] .= exp(k*h*mu) .* f
+            else
+                @views X[:, k + (i-1)*d + 1] .= f
+            end
         end
 
         if i <= j
@@ -107,7 +111,7 @@ end
 function expmv(
         t::StepRangeLen, A, b::AbstractVecOrMat,
         M = nothing, norm = LinearAlgebra.norm, opnorm = LinearAlgebra.opnorm;
-        precision = :double, shift = false, check_positive = false
+        precision = :double, shift = DEFAULT_SHIFT, check_positive = false
     )
 
     return expmv!(

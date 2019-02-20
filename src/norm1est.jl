@@ -27,25 +27,6 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-
-function A_pow_n_B!(res, A, n::Integer, v)
-    tmp = similar(v)
-    mul!(res, A, v)
-    for i in 1:n-1
-        mul!(tmp, A, res)
-        copyto!(res, tmp)
-    end
-end
-
-function At_pow_n_B!(res, A, n::Integer, v)
-    tmp = similar(v)
-    mul!(res, adjoint(A), v)
-    for i in 1:n-1
-        mul!(tmp, adjoint(A), res)
-        copyto!(res, tmp)
-    end
-end
-
 function norm1est(A, m::Integer, t::Integer = min(2,maximum(size(A))))::Real
     # Effectively implements Algorithm 2.4 of Higham, Tisseur, SIAM J. Mat. Anal. Appl. 21, 1185 (2000)
     # The first argument is the power to which A is raised.

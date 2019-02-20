@@ -86,16 +86,15 @@ end
 
 @testset "Linear Operator" begin
     d = 100
-    A = sprandn(d,d,.1) + 1im * sprandn(d,d,.1)
+    A = sprandn(ComplexF64,d,d,.1)
     L = LinearMap(A)
 
-    rv = randn(Complex{Float64}, d)
+    rv = randn(ComplexF64, d)
     rv ./= norm(rv, 2)
 
     rt = randn()
-
-    @test expmv(rt, L, rv) ≈ expmv(rt, A, rv)
+    @test expmv(rt, L, rv; shift = false) ≈ expmv(rt, A, rv)
 
     t = range(0, stop=rt, length=20)
-    @test expmv(t, L, rv) ≈ expmv(t, A, rv)
+    @test expmv(t, L, rv; shift = false) ≈ expmv(t, A, rv)
 end
