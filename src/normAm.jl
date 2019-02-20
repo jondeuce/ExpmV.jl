@@ -15,12 +15,12 @@ function normAm(A,
 
     #   Awad H. Al-Mohy and Nicholas J. Higham, September 7, 2010.
 
-    t = 2; # Number of columns used by NORMEST1.
+    t = 2 # Number of columns used by NORMEST1.
 
     if check_positive # expensive check; forces matrix materialization
-        if eltype(A) <: Real && hasmethod(opnorm, Tuple{typeof(A), typeof(1)})
-            if sum(A .< 0) == 0 # for positive matrices only
-                n = size(A, 2);
+        if eltype(A) <: Real #&& hasmethod(opnorm, Tuple{typeof(A), typeof(1)})
+            if isequal(A, abs.(A)) #sum(A .< 0) == 0 # for positive matrices only
+                n = size(A, 2)
                 e = ones(n, 1)
                 f = similar(e)
                 for j=1:m
