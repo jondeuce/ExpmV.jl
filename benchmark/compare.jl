@@ -9,7 +9,7 @@ const dt = 0.5 + 0.1*rand() # time
 
 SUITE = BenchmarkGroup()
 
-# SUITE["Expm"] = BenchmarkGroup()
+SUITE["Expm"] = BenchmarkGroup()
 SUITE["ExpmV"] = BenchmarkGroup()
 SUITE["Expokit"] = BenchmarkGroup()
 SUITE["ExpmV_LinMap"] = BenchmarkGroup()
@@ -21,11 +21,11 @@ SUITE["Expokit_LinMap_Precomp"] = BenchmarkGroup()
 dimensions = [d for d in 2 .^ (5:10)]
 
 for d in dimensions
-    #SUITE[d] = BenchmarkGroup()
-    A, b = sprandn(ComplexF64,d,d,m/d), normalize(randn(ComplexF64,d))
+    A = sprandn(ComplexF64,d,d,m/d) + m*I
     L = LinearMap(A)
+    b = normalize(randn(ComplexF64,d))
 
-    # SUITE["Expm"][d]            = @benchmarkable exp(dt_A)*$b setup=(dt_A = Matrix($dt*$A))
+    SUITE["Expm"][d]            = @benchmarkable exp(dt_A)*$b setup=(dt_A = Matrix($dt*$A))
     SUITE["ExpmV"][d]           = @benchmarkable ExpmV.expmv($dt,$A,$b;shift=true)
     SUITE["Expokit"][d]         = @benchmarkable Expokit.expmv($dt,$A,$b)
     SUITE["ExpmV_LinMap"][d]    = @benchmarkable ExpmV.expmv($dt,$L,$b;shift=false)
